@@ -1,6 +1,8 @@
 测试情况：针对移动端
 在iphone SE上测试通过
 
+可以用手机访问https://9494huihui.github.io/unlock/unlock.html看到效果
+
 大体思路：
 一、使用bootstrap搭建页面，分为canvas、p、两个单选框三个部分
 
