@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+		<title>手势密码</title>
+		<link rel="stylesheet" href="bootstrap.min.css" />
+		<link rel="stylesheet" href="unlock.css" />
+	</head>
+
+	<body>
+		<div class="container">
+			<div class="row">
+				<div class="col-xs-11 col-xs-offset-1">
+					<canvas id="myCanvas"></canvas>
+				</div>
+			</div>
+
+			<div class="row msg">
+				<div class="col-xs-offset-2">
+					<h3 id="msg"></h3>
+				</div>
+			</div>
+			
+			<div class="row navbar-fixed-bottom" id="lastRadio">
+				<div class="col-xs-4 col-xs-offset-2">
+					<div class="radio">
+				  		<label>
+				    		<input type="radio" name="optionsRadios" id="optionsRadios1" value="setPwd" checked>设置密码
+				 		</label>
+					</div>
+					<div class="radio">
+						<label>
+					    	<input type="radio" name="optionsRadios" id="optionsRadios2" value="valPwd">验证密码
+					  	</label>
+					</div>
+				</div>
+			</div>
+		</div>
+		<script src="jquery.min.js"></script>
+		<script src="unlock.js"></script>
+	</body>
+</html>
