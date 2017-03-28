@@ -172,34 +172,34 @@ unlock.prototype = {
     },
     
     bangEvent: function() { 
-        var self = this; 
+        var that = this; 
         //手指触摸屏幕触发
         this.canvas.addEventListener("touchstart", function (e) { 
-            var po = self.getPosition(e); 
+            var po = that.getPosition(e); 
             
-             for (var i = 0 ; i < self.arr.length ; i++) { 
+             for (var i = 0 ; i < that.arr.length ; i++) { 
                 //判断是否在圆内
-                if (Math.abs(po.x - self.arr[i].x) < self.r && Math.abs(po.y - self.arr[i].y) < self.r) { 
-                    self.touchFlag = true; 
-                    self.drawPoint(self.arr[i].x,self.arr[i].y); 
-                    self.clickPoint.push(self.arr[i]); 
-                    self.restPoint.splice(i,1); 
+                if (Math.abs(po.x - that.arr[i].x) < that.r && Math.abs(po.y - that.arr[i].y) < that.r) { 
+                    that.touchFlag = true; 
+                    that.drawPoint(that.arr[i].x,that.arr[i].y); 
+                    that.clickPoint.push(that.arr[i]); 
+                    that.restPoint.splice(i,1); 
                 } 
              } 
          }, false); 
         //手指滑动时连续触发
          this.canvas.addEventListener("touchmove", function (e) { 
-            if (self.touchFlag) { 
-                self.drawActive(self.getPosition(e)); 
+            if (that.touchFlag) { 
+                that.drawActive(that.getPosition(e)); 
             } 
          }, false); 
          //手指离开时触发
          this.canvas.addEventListener("touchend", function (e) { 
-             if (self.touchFlag) { 
-                 self.touchFlag = false; 
-                 self.judgePsd(self.clickPoint); 
+             if (that.touchFlag) { 
+                 that.touchFlag = false; 
+                 that.judgePsd(that.clickPoint); 
                  setTimeout(function(){ 
-                    self.reset(); 
+                    that.reset(); 
                 }, 300); 
              } 
          }, false);            
