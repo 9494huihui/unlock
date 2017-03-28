@@ -4,8 +4,8 @@ $(function() {
     }
 );
 
-window.unlock = function(){ 
-    this.n = Number(window.localStorage.getItem('n')) || 3; 
+var unlock = function(){ 
+    this.n = 3; 
 }; 
 
 unlock.prototype = {
@@ -21,59 +21,62 @@ unlock.prototype = {
         this.ctx.stroke(); 
     },
 
-    //填充圆
+    //填充所有点击过的圆
     drawPoint: function() {
-        for (var i=0; i<this.lastPoint.length; i++) { 
+        for (var i=0; i<this.clickPoint.length; i++) { 
             this.ctx.fillStyle = '#FF9900'; 
             this.ctx.beginPath(); 
-            this.ctx.arc(this.lastPoint[i].x, this.lastPoint[i].y, this.r, 0, Math.PI * 2, true); 
+            this.ctx.arc(this.clickPoint[i].x, this.clickPoint[i].y, this.r, 0, Math.PI * 2, true); 
             this.ctx.closePath(); 
             this.ctx.fill(); 
         } 
     },
 
     //画走过的直线
-    drawLine: function(po, lastPoint) {
+    drawLine: function(po, clickPoint) {
         this.ctx.strokeStyle = '#FF0000';  
         this.ctx.lineWidth = 2; 
         this.ctx.beginPath();
-        this.ctx.moveTo(this.lastPoint[0].x, this.lastPoint[0].y); 
-        for (var i = 1 ; i < this.lastPoint.length ; i++) { 
-            this.ctx.lineTo(this.lastPoint[i].x, this.lastPoint[i].y); 
+        this.ctx.moveTo(this.clickPoint[0].x, this.clickPoint[0].y); 
+        for (var i = 1 ; i < this.clickPoint.length ; i++) { 
+            this.ctx.lineTo(this.clickPoint[i].x, this.clickPoint[i].y); 
         } 
         this.ctx.lineTo(po.x, po.y); 
         
-        this.ctx.stroke();  
-        this.ctx.closePath();
+        this.ctx.stroke();  //
+        this.ctx.closePath();//注意这两个顺序不能写反
     },
 
-    createCircle: function() {// 创建解锁点的坐标，根据canvas的大小来平均分配半径
- 
-            var n = this.n;
-            var count = 0;
-            this.r = this.ctx.canvas.width / (2 + 4 * n);// 公式计算
-            this.lastPoint = [];
-            this.arr = [];
-            this.restPoint = [];
-            var r = this.r;
-            for (var i = 0 ; i < n ; i++) {
-                for (var j = 0 ; j < n ; j++) {
-                    count++;
-                    var obj = {
-                        x: j * 4 * r + 3 * r,
-                        y: i * 4 * r + 3 * r,
-                        index: count
-                    };
-                    this.arr.push(obj);
-                    this.restPoint.push(obj);
-                }
+    //排列空圆
+    createCircle: function() {
+        var n = this.n;
+        var count = 0;
+        this.r = this.ctx.canvas.width / (2 + 4 * n);// 公式计算
+        this.clickPoint = [];
+        this.arr = [];
+        this.restPoint = [];
+        var r = this.r;
+        for (var i = 0 ; i < n ; i++) {
+            for (var j = 0 ; j < n ; j++) {
+                count++;
+                var obj = {
+                    x: j * 4 * r + 3 * r,
+                    y: i * 4 * r + 3 * r,
+                    index: count
+                };
+                this.arr.push(obj);
+                this.restPoint.push(obj);
             }
-            this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
-            for (var i = 0 ; i < this.arr.length ; i++) {
-                this.drawCircle(this.arr[i].x, this.arr[i].y);
-            }
-            //return arr;
-        },
+        }
+        this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+        for (var i = 0 ; i < this.arr.length ; i++) {
+            this.drawCircle(this.arr[i].x, this.arr[i].y);
+        }
+    },
+
+    reset: function() {
+        this.createCircle();
+    },
 
     getPosition: function(e) {
         var rect = e.currentTarget.getBoundingClientRect(); 
@@ -84,28 +87,27 @@ unlock.prototype = {
         return po; 
     },
 
-    update: function(po) {
+    drawActive: function(po) {
         this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height); 
 
         for (var i = 0 ; i < this.arr.length ; i++) {  
             this.drawCircle(this.arr[i].x, this.arr[i].y); 
         } 
 
-        this.drawPoint(this.lastPoint);
-        this.drawLine(po, this.lastPoint); 
+        this.drawPoint(this.clickPoint);
+        this.drawLine(po, this.clickPoint); 
         
         for (var i = 0 ; i < this.restPoint.length ; i++) { 
             if (Math.abs(po.x - this.restPoint[i].x) < this.r && Math.abs(po.y - this.restPoint[i].y) < this.r) { 
                 this.drawPoint(this.restPoint[i].x, this.restPoint[i].y); 
-                this.lastPoint.push(this.restPoint[i]); 
+                this.clickPoint.push(this.restPoint[i]); 
                 this.restPoint.splice(i, 1); 
-                break; 
             } 
         } 
 
     },
 
-    checkPass: function(psw1, psw2) {
+    comparePsw: function(psw1, psw2) {
         if (psw1.length != psw2.length) {
             return false;
         }
@@ -119,10 +121,10 @@ unlock.prototype = {
         return true;
     },
 
-    storePass: function(psw) { 
+    judgePsd: function(psw) { 
         if ($("input[type='radio']:checked").val() == 'setPwd') {
             if (this.step == 1) { 
-                if (this.checkPass(this.pswObj.fpassword, psw)) { 
+                if (this.comparePsw(this.pswObj.fpassword, psw)) { 
                     this.pswObj.spassword = psw; 
                     document.getElementById('msg').innerHTML = '密码设置成功'; 
                     window.localStorage.setItem('passwordxx', JSON.stringify(this.pswObj.spassword)); 
@@ -131,7 +133,7 @@ unlock.prototype = {
                     document.getElementById('msg').innerHTML = '两次输入的不一致'; 
                     setTimeout(function(){ 
                         document.getElementById('msg').innerHTML = '请输入手势密码';
-                    }, 300); 
+                    }, 1000); 
                     delete this.step;
                 } 
             }
@@ -147,8 +149,8 @@ unlock.prototype = {
             }
         }
         else if ($("input[type='radio']:checked").val() == 'valPwd') { 
-            if (this.checkPass(this.pswObj.spassword, psw)) { 
-                document.getElementById('msg').innerHTML = '密码正确';      
+            if (this.comparePsw(this.pswObj.spassword, psw)) { 
+                document.getElementById('msg').innerHTML = '密码正确!';      
             } else {    
                 document.getElementById('msg').innerHTML = '输入的密码不正确'; 
             } 
@@ -168,14 +170,11 @@ unlock.prototype = {
         this.createCircle();
         this.bangEvent(); 
     },
-    reset: function() {
-            this.createCircle();
-        },
+    
     bangEvent: function() { 
         var self = this; 
         //手指触摸屏幕触发
         this.canvas.addEventListener("touchstart", function (e) { 
-            e.preventDefault();
             var po = self.getPosition(e); 
             
              for (var i = 0 ; i < self.arr.length ; i++) { 
@@ -183,31 +182,26 @@ unlock.prototype = {
                 if (Math.abs(po.x - self.arr[i].x) < self.r && Math.abs(po.y - self.arr[i].y) < self.r) { 
                     self.touchFlag = true; 
                     self.drawPoint(self.arr[i].x,self.arr[i].y); 
-                    self.lastPoint.push(self.arr[i]); 
+                    self.clickPoint.push(self.arr[i]); 
                     self.restPoint.splice(i,1); 
-                    break; 
                 } 
              } 
          }, false); 
         //手指滑动时连续触发
          this.canvas.addEventListener("touchmove", function (e) { 
             if (self.touchFlag) { 
-                self.update(self.getPosition(e)); 
+                self.drawActive(self.getPosition(e)); 
             } 
          }, false); 
          //手指离开时触发
          this.canvas.addEventListener("touchend", function (e) { 
              if (self.touchFlag) { 
                  self.touchFlag = false; 
-                 self.storePass(self.lastPoint); 
+                 self.judgePsd(self.clickPoint); 
                  setTimeout(function(){ 
                     self.reset(); 
                 }, 300); 
              } 
-         }, false);  
-
-         document.addEventListener('touchmove', function(e){ 
-            e.preventDefault(); 
-         },false);           
+         }, false);            
     } 
 }
