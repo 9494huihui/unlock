@@ -4,7 +4,7 @@ $(function() {
     }
 );
 
-var unlock = function(){ 
+window.unlock = function(){ 
     this.n = Number(window.localStorage.getItem('n')) || 3; 
 }; 
 
@@ -42,9 +42,38 @@ unlock.prototype = {
             this.ctx.lineTo(this.lastPoint[i].x, this.lastPoint[i].y); 
         } 
         this.ctx.lineTo(po.x, po.y); 
-        this.ctx.closePath();
+        
         this.ctx.stroke();  
+        this.ctx.closePath();
     },
+
+    createCircle: function() {// 创建解锁点的坐标，根据canvas的大小来平均分配半径
+ 
+            var n = this.n;
+            var count = 0;
+            this.r = this.ctx.canvas.width / (2 + 4 * n);// 公式计算
+            this.lastPoint = [];
+            this.arr = [];
+            this.restPoint = [];
+            var r = this.r;
+            for (var i = 0 ; i < n ; i++) {
+                for (var j = 0 ; j < n ; j++) {
+                    count++;
+                    var obj = {
+                        x: j * 4 * r + 3 * r,
+                        y: i * 4 * r + 3 * r,
+                        index: count
+                    };
+                    this.arr.push(obj);
+                    this.restPoint.push(obj);
+                }
+            }
+            this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+            for (var i = 0 ; i < this.arr.length ; i++) {
+                this.drawCircle(this.arr[i].x, this.arr[i].y);
+            }
+            //return arr;
+        },
 
     getPosition: function(e) {
         var rect = e.currentTarget.getBoundingClientRect(); 
@@ -81,8 +110,8 @@ unlock.prototype = {
             return false;
         }
         for (var i=0; i<psw1.length; i++) {
-            console.log(psw1[i].index);
-            console.log(psw2[i].index);
+            //console.log(psw1[i].index);
+            //console.log(psw2[i].index);
             if (psw1[i].index != psw2[i].index) {
                 return false;
             }
@@ -100,6 +129,9 @@ unlock.prototype = {
                 } 
                 else { 
                     document.getElementById('msg').innerHTML = '两次输入的不一致'; 
+                    setTimeout(function(){ 
+                        document.getElementById('msg').innerHTML = '请输入手势密码';
+                    }, 300); 
                     delete this.step;
                 } 
             }
@@ -124,9 +156,6 @@ unlock.prototype = {
     },
 
     init: function() { 
-        this.lastPoint = []; 
-        this.arr = []; 
-        this.restPoint = []; 
         this.pswObj = {};
         this.step = 0; 
         this.touchFlag = false; 
@@ -136,32 +165,12 @@ unlock.prototype = {
         this.ctx = this.canvas.getContext('2d'); 
         this.ctx.canvas.height = this.ctx.canvas.width;
 
-        var count = 0; 
-        var n = this.n;
-        this.r = this.ctx.canvas.width / (2 + 4 * n);
-        var r = this.r; 
-
-        for (var i = 0 ; i < n ; i++) { 
-            for (var j = 0 ; j < n ; j++) { 
-                count++; 
-                var obj = { 
-                    x: j * 4 * r + 3 * r, 
-                    y: i * 4 * r + 3 * r, 
-                    index: count 
-                }; 
-                this.arr.push(obj); 
-                this.restPoint.push(obj); 
-            } 
-        } 
-
-        this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height); 
-
-        for (var i = 0 ; i < this.arr.length ; i++) { 
-            this.drawCircle(this.arr[i].x, this.arr[i].y); 
-        } 
+        this.createCircle();
         this.bangEvent(); 
     },
-
+    reset: function() {
+            this.createCircle();
+        },
     bangEvent: function() { 
         var self = this; 
         //手指触摸屏幕触发
@@ -192,11 +201,8 @@ unlock.prototype = {
                  self.touchFlag = false; 
                  self.storePass(self.lastPoint); 
                  setTimeout(function(){ 
-                    self.ctx.clearRect(0, 0, self.ctx.canvas.width, self.ctx.canvas.height); 
-                    for (var i = 0 ; i < self.arr.length ; i++) { 
-                        self.drawCircle(self.arr[i].x, self.arr[i].y); 
-                    } 
-                }, 1000); 
+                    self.reset(); 
+                }, 300); 
              } 
          }, false);  
 
